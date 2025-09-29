@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنفوجرافيك: التربية الدامجة في التعليم الأولي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 380px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        .flowchart-step {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .flowchart-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .flowchart-arrow {
+            font-size: 2.5rem;
+            line-height: 1;
+            color: #FFD166;
+        }
+         .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 0.5rem;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #118AB2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+         /* Custom button style for LLM features */
+        .llm-button {
+            background-image: linear-gradient(to right, #118AB2 0%, #073B4C 100%);
+            transition: all 0.3s ease;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        .llm-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+         .image-preview {
+            max-height: 150px;
+            width: auto;
+            border-radius: 0.5rem;
+            object-fit: contain;
+            margin-top: 1rem;
+            border: 1px solid #ccc;
+        }
+        /* Specific styling for structured output */
+        .structured-output strong {
+             display: block;
+             margin-top: 0.75rem;
+             margin-bottom: 0.25rem;
+             color: #118AB2;
+             font-size: 1.125rem; /* lg */
+             border-bottom: 2px solid #06D6A0;
+             padding-bottom: 4px;
+        }
+        .structured-output ul {
+            list-style-type: disc;
+            margin-right: 1.5rem;
+            padding-right: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .structured-output li {
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800">
+
+    <header class="bg-[#073B4C] text-white p-8 text-center shadow-lg">
+        <h1 class="text-4xl font-bold mb-2">التربية الدامجة في مرحلة التعليم الأولي</h1>
+        <p class="text-xl text-gray-300">المحاور الأربعة: المفهوم، الإعاقات، الإساءة، والحماية</p>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <!-- GEMINI API FEATURE: Activity Idea Generator (NEW) -->
+        <section id="activity-generator" class="mb-12 bg-[#06D6A0] p-6 rounded-lg shadow-xl relative">
+            <h2 class="text-3xl font-bold text-center text-white mb-6">✨ مولّد الأنشطة الدامجة</h2>
+            <p class="text-center text-gray-100 max-w-4xl mx-auto mb-6">
+                أدخل موضوعًا دراسيًا أو نشاطًا عامًا (مثل "الحيوانات الأليفة" أو "تعلّم الأرقام 1-5") لتحصل على نشاط تطبيقي مع توصيات دمج فورية.
+            </p>
+
+            <div class="bg-white p-6 rounded-lg shadow-md grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div class="md:col-span-2">
+                    <label for="activity-topic" class="block text-sm font-medium text-gray-700 mb-1 text-right">الموضوع أو الهدف التعليمي</label>
+                    <input type="text" id="activity-topic" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#06D6A0] text-right w-full" placeholder="مثال: التعرف على الأشكال الهندسية الأساسية">
+                </div>
+                 <div>
+                    <label for="activity-duration" class="block text-sm font-medium text-gray-700 mb-1 text-right">المدة المقترحة (دقيقة)</label>
+                    <select id="activity-duration" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#06D6A0] text-right w-full">
+                        <option value="15">15 دقيقة</option>
+                        <option value="20">20 دقيقة</option>
+                        <option value="30" selected>30 دقيقة</option>
+                    </select>
+                </div>
+                
+                <button onclick="generateInclusiveActivity()" class="llm-button py-3 px-4 rounded-lg shadow-md flex items-center justify-center bg-gradient-to-r from-[#118AB2] to-[#073B4C]">
+                    ✨ توليد نشاط دامج
+                </button>
+            </div>
+            
+            <div id="activity-result-container" class="mt-6 bg-slate-100 p-6 rounded-lg relative min-h-[100px]">
+                <div id="activity-loading" class="loading-overlay hidden">
+                    <div class="spinner"></div>
+                    <p class="mr-4 text-[#073B4C] font-semibold">جاري التوليد... يرجى الانتظار.</p>
+                </div>
+                <div id="activity-result" class="text-right text-gray-800">
+                    <!-- Results will appear here -->
+                    <p class="text-gray-500 italic">سيتم عرض تفاصيل النشاط مع التكييفات المقترحة هنا.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="introduction" class="mb-12">
+            <h2 class="text-3xl font-bold text-center text-[#118AB2] mb-6">النشاط الأول: مفهوم التربية الدامجة وخصائصها</h2>
+            <div class="bg-white rounded-lg shadow-xl p-6 mb-8 text-center border-b-4 border-[#118AB2]">
+                <h3 class="text-2xl font-bold text-[#073B4C] mb-4">التعريف والأهداف الجوهرية</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+                    <p id="inclusive-definition" class="text-lg max-w-4xl mx-auto md:w-3/4">
+                        التربية الدامجة هي نظام تربوي يضمن **حق كل طفل** في الحصول على تعليم ذي جودة في بيئة مشتركة، بهدف القضاء على جميع أشكال التمييز وتعزيز **الإنصاف وتكافؤ الفرص** للجميع في التمدرس.
+                    </p>
+                    <button onclick="readDefinition()" class="bg-[#06D6A0] text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-[#05a57c] transition duration-150 flex items-center justify-center md:w-1/4 min-w-[150px]">
+                        🔊 اقرأ التعريف (TTS)
+                    </button>
+                    <audio id="tts-audio" class="hidden"></audio>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8 text-center">
+                <div class="bg-[#06D6A0] text-white p-6 rounded-lg shadow-md flex flex-col justify-center h-40">
+                    <h4 class="text-xl font-bold mb-2">احترام الفروقات</h4>
+                    <p class="text-sm">الاعتراف بالاختلافات الفردية واعتبارها مصدر غنى وليس عائقاً.</p>
+                </div>
+                <div class="bg-[#FFD166] text-[#073B4C] p-6 rounded-lg shadow-md flex flex-col justify-center h-40">
+                    <h4 class="text-xl font-bold mb-2">قدرة الطفل على التعلم</h4>
+                    <p class="text-sm">التأكيد على أن كل طفل، مهما كانت خصوصياته، يمتلك القدرة على التطور والتعلم.</p>
+                </div>
+                <div class="bg-[#FF6B6B] text-white p-6 rounded-lg shadow-md flex flex-col justify-center h-40">
+                    <h4 class="text-xl font-bold mb-2">التكيف الفردي</h4>
+                    <p class="text-sm">الدعوة إلى تكييف البيئة والأنشطة لمساعدة كل طفل على بلوغ أقصى إمكاناته.</p>
+                </div>
+                <div class="bg-[#118AB2] text-white p-6 rounded-lg shadow-md flex flex-col justify-center h-40">
+                    <h4 class="text-xl font-bold mb-2">خلق جو مشجع</h4>
+                    <p class="text-sm">العمل على توفير جو مشجع ومريح يبعث على التقبل والاحترام المتبادل بين الأطفال.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="disabilities" class="mb-12">
+             <h2 class="text-3xl font-bold text-center text-[#118AB2] mb-6">النشاط الثاني: الأطفال في وضعية إعاقة وممارسات المربي</h2>
+             <div class="bg-white rounded-lg shadow-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-8 items-center mb-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-2xl font-bold text-[#073B4C] mb-4">الإطار القانوني وأنواع التحديات</h3>
+                    <div class="bg-slate-100 p-4 rounded-lg border-r-4 border-[#06D6A0] mb-4">
+                        <p class="font-semibold text-lg text-[#073B4C]">القانون الإطار 13-97</p>
+                        <p class="text-sm">لحماية حقوق الأشخاص في وضعية إعاقة وضمان مشاركتهم الكاملة في المجتمع وفي العملية التعليمية.</p>
+                    </div>
+                    <p class="text-base">تتطلب الدامجة فهمًا لأنواع الإعاقات التي تؤثر على اكتساب المهارات الأكاديمية (مثل القراءة والكتابة والحساب) أو على الجانب الحركي والتواصلي.</p>
+                     <p class="text-sm text-gray-500 mt-4">يوضح الرسم البياني التوزيع التوضيحي لأبرز أنواع الإعاقات التي قد تحتاج لدعم في التعليم الأولي.</p>
+                </div>
+                <div class="chart-container md:col-span-2">
+                    <canvas id="disabilitiesChart"></canvas>
+                </div>
+             </div>
+             
+             <h3 class="text-2xl font-bold text-[#FF6B6B] mb-4 text-center">تكييف الممارسات التربوية</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center border-t-4 border-[#118AB2]">
+                    <div class="text-5xl mb-4 text-[#118AB2]">🧩</div>
+                    <h4 class="text-xl font-bold mb-3">طيف التوحد (Asperger)</h4>
+                    <p class="text-sm text-gray-600 mb-2 font-bold">بيئة منظمة وهدوء</p>
+                    <ul class="list-disc list-inside text-right text-sm space-y-1">
+                        <li>مسايرة السلوك النمطي لجذب الانتباه والتركيز.</li>
+                        <li>توفير مكان آمن وهادئ له عند الحاجة للعزلة.</li>
+                        <li>تكليف زميل له (مساعد) لتعزيز التواصل الاجتماعي.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center border-t-4 border-[#06D6A0]">
+                    <div class="text-5xl mb-4 text-[#06D6A0]">❤️</div>
+                    <h4 class="text-xl font-bold mb-3">متلازمة داون (Down Syndrome)</h4>
+                    <p class="text-sm text-gray-600 mb-2 font-bold">بساطة وخطوات متدرجة</p>
+                    <ul class="list-disc list-inside text-right text-sm space-y-1">
+                        <li>إبعاد المشتتات البصرية والسمعية داخل الصف.</li>
+                        <li>تفكيك المهام الكبيرة إلى خطوات صغيرة مبسطة.</li>
+                        <li>استخدام التشجيع والتحفيز المستمر كأداة للتعلم.</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center border-t-4 border-[#FF6B6B]">
+                    <div class="text-5xl mb-4 text-[#FF6B6B]">♿</div>
+                    <h4 class="text-xl font-bold mb-3">الإعاقة الحركية / الحسية</h4>
+                     <p class="text-sm text-gray-600 mb-2 font-bold">تكييف الفضاء والأدوات</p>
+                     <ul class="list-disc list-inside text-right text-sm space-y-1">
+                        <li>اختيار مكان أنسب للطفل يسهل حركته ودخوله وخروجه.</li>
+                        <li>الانتباه لوضعية جلوس الطفل عند استخدام الطاولة (للحفاظ على سلامة الجسد).</li>
+                        <li>وضع وسائل ديداكتيكية **مكيفة** رهن إشارته للرسم أو الكتابة.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center border-t-4 border-[#FFD166]">
+                    <div class="text-5xl mb-4 text-[#FFD166]">🧠</div>
+                    <h4 class="text-xl font-bold mb-3">اضطرابات التعلم المحددة</h4>
+                    <p class="text-sm text-gray-600 mb-2 font-bold">مرونة في الإيقاع والتقييم</p>
+                    <ul class="list-disc list-inside text-right text-sm space-y-1">
+                        <li>تخصيص وقت إضافي لإنجاز المهام وعدم فرض نفس وتيرة باقي الأطفال.</li>
+                        <li>تجاوز الأخطاء البسيطة في النطق أو التعبير المكتوب مؤقتًا.</li>
+                        <li>هذا الاضطراب لا يعكس **مقدار ذكاء الطفل** بل يؤثر على قدرته على الإنجاز الأكاديمي.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="abuse_consequences" class="mb-12">
+            <h2 class="text-3xl font-bold text-center text-[#FF6B6B] mb-6">النشاط الثالث: إساءة المعاملة وعواقبها</h2>
+            <p class="text-center text-lg max-w-4xl mx-auto mb-8">الأطفال ذوو الاحتياجات الخاصة أكثر عرضة للإساءة. فهم الإساءة وعواقبها أمر حيوي لاتخاذ إجراءات الحماية الفعالة.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div class="bg-white rounded-lg shadow-md p-6 border-r-8 border-[#FF6B6B]">
+                    <h3 class="text-2xl font-bold text-[#FF6B6B] mb-4">أشكال الإساءة الأربعة</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <span class="text-3xl text-[#FF6B6B]">💔</span>
+                            <div>
+                                <h4 class="font-bold text-[#073B4C]">الإهمال أو الحرمان</h4>
+                                <p class="text-sm">الفشل في تلبية الاحتياجات الأساسية للطفل (غذاء، رعاية صحية، تعليم).</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-3xl text-[#FF6B6B]">🤕</span>
+                            <div>
+                                <h4 class="font-bold text-[#073B4C]">الإيذاء الجسدي</h4>
+                                <p class="text-sm">استخدام القوة الذي يؤدي إلى ضرر أو إصابة بدنية.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-3xl text-[#FF6B6B]">🗣️</span>
+                            <div>
+                                <h4 class="font-bold text-[#073B4C]">الإيذاء العاطفي (النفسي)</h4>
+                                <p class="text-sm">السلوك الذي يضر بالنمو النفسي أو الاجتماعي للطفل (مثل الإهانة المستمرة).</p>
+                            </div>
+                        </div>
+                         <div class="flex items-start gap-3">
+                            <span class="text-3xl text-[#FF6B6B]">🚫</span>
+                            <div>
+                                <h4 class="font-bold text-[#073B4C]">الاستغلال أو الاعتداء الجنسي</h4>
+                                <p class="text-sm">أي شكل من أشكال استغلال ضعف الطفل أو التعرض له جنسياً.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-8 border-[#073B4C]">
+                    <h3 class="text-2xl font-bold text-[#073B4C] mb-4">العواقب على النمو والصحة</h3>
+                    <div class="space-y-6">
+                        <div class="bg-[#FFD166]/30 p-4 rounded-lg">
+                            <h4 class="text-xl font-bold text-[#073B4C] mb-1">المدى القصير: التأثير الفوري</h4>
+                            <p class="text-sm">يؤدي الإيذاء إلى فرط نشاط المناطق الدماغية المسؤولة عن الخوف والقلق، مما يسبب صعوبات في **التركيز** و **التعلم** و **التفاعل الاجتماعي**.</p>
+                        </div>
+                        <div class="bg-[#FF6B6B]/30 p-4 rounded-lg">
+                            <h4 class="text-xl font-bold text-[#073B4C] mb-1">المدى الطويل: المخاطر الصحية</h4>
+                            <p class="text-sm">ترتبط إساءة المعاملة في الطفولة بزيادة مخاطر السلوكيات الضارة، مثل التدخين، والسمنة، وتعاطي المخدرات، وارتفاع احتمالية الإصابة **بأمراض مزمنة** في البلوغ.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- GEMINI API FEATURE: Communication Draft Generator -->
+            <div class="bg-[#FFD166]/20 p-6 rounded-lg shadow-inner mt-8 relative">
+                <h3 class="text-2xl font-bold text-[#073B4C] text-center mb-4">✨ مولّد مسودة التواصل مع الأسر</h3>
+                <p class="text-center text-sm text-gray-700 mb-4">اكتب بوضوح السلوك أو العلامة التي لاحظتها (مثال: الانسحاب المفاجئ، كدمة غير مبررة، نوبات غضب متكررة) للحصول على مسودة رسالة مهنية للوالدين.</p>
+
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+                    <textarea id="observed-behavior" rows="2" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFD166] text-right md:w-2/3 w-full" placeholder="السلوك الملاحظ أو علامة الخطر..."></textarea>
+                    
+                    <button onclick="generateCommunicationDraft()" class="llm-button py-3 px-6 rounded-lg shadow-md md:w-1/3 w-full flex items-center justify-center">
+                        ✨ توليد مسودة رسالة للأسر
+                    </button>
+                </div>
+
+                 <div id="communication-draft-result-container" class="mt-6 bg-white p-4 rounded-lg shadow-inner relative min-h-[50px]">
+                    <div id="communication-draft-loading" class="loading-overlay hidden">
+                        <div class="spinner"></div>
+                        <p class="mr-4 text-[#073B4C] font-semibold">جاري التوليد... يرجى الانتظار.</p>
+                    </div>
+                    <div id="communication-draft-result" class="text-right text-gray-800">
+                        <!-- Results will appear here -->
+                        <p class="text-gray-500 italic">ستظهر هنا مسودة رسالة مهنية للوالدين.</p>
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+
+        <section id="protection" class="mb-12">
+            <h2 class="text-3xl font-bold text-center text-[#118AB2] mb-6">النشاط الرابع: دور المربي الفعال في دورة الحماية</h2>
+            <p class="text-center text-lg max-w-4xl mx-auto mb-8">يجب على المربي اتباع تسلسل منهجي لضمان حماية الأطفال في وضعية إعاقة من الإيذاء أو الإهمال.</p>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
+                <div class="flowchart-step bg-white rounded-lg shadow-md p-4 w-56 text-center border-t-4 border-[#073B4C]">
+                    <h4 class="font-bold text-[#073B4C]">1. الوعي والإلمام</h4>
+                    <p class="text-sm">فهم خصائص الأطفال وإدراك أشكال الإساءة المحتملة.</p>
+                </div>
+                <div class="flowchart-arrow mx-4 hidden md:block">➔</div>
+                 <div class="flowchart-arrow my-2 md:hidden">⬇</div>
+                <div class="flowchart-step bg-white rounded-lg shadow-md p-4 w-56 text-center border-t-4 border-[#118AB2]">
+                    <h4 class="font-bold text-[#118AB2]">2. الوقاية النشطة</h4>
+                    <p class="text-sm">اتخاذ تدابير استباقية وتأمين البيئة للحد من أي انتهاكات.</p>
+                </div>
+                 <div class="flowchart-arrow mx-4 hidden md:block">➔</div>
+                 <div class="flowchart-arrow my-2 md:hidden">⬇</div>
+                <div class="flowchart-step bg-white rounded-lg shadow-md p-4 w-56 text-center border-t-4 border-[#06D6A0]">
+                    <h4 class="font-bold text-[#06D6A0]">3. الاكتشاف والملاحظة</h4>
+                    <p class="text-sm">التعرف بدقة على العلامات الجسدية والسلوكية الدالة على الإساءة.</p>
+                </div>
+                 <div class="flowchart-arrow mx-4 hidden md:block">➔</div>
+                 <div class="flowchart-arrow my-2 md:hidden">⬇</div>
+                <div class="flowchart-step bg-white rounded-lg shadow-md p-4 w-56 text-center border-t-4 border-[#FFD166]">
+                    <h4 class="font-bold text-[#FFD166]">4. الإبلاغ المسؤول</h4>
+                    <p class="text-sm">نقل المعلومات بمسؤولية إلى الجهات المختصة والمعنية بالدعم.</p>
+                </div>
+                 <div class="flowchart-arrow mx-4 hidden md:block">➔</div>
+                 <div class="flowchart-arrow my-2 md:hidden">⬇</div>
+                <div class="flowchart-step bg-white rounded-lg shadow-md p-4 w-56 text-center border-t-4 border-[#FF6B6B]">
+                    <h4 class="font-bold text-[#FF6B6B]">5. الإحالة المتخصصة</h4>
+                    <p class="text-sm">توجيه الطفل نحو خدمات الرعاية الصحية والنفسية اللازمة.</p>
+                </div>
+            </div>
+            
+            <!-- GEMINI API FEATURE: Classroom Image Analyzer -->
+            <div class="bg-[#118AB2]/20 p-6 rounded-lg shadow-inner mt-8 relative">
+                <h3 class="text-2xl font-bold text-[#073B4C] text-center mb-4">✨ مُحلِّل صور القسم الدامج</h3>
+                <p class="text-center text-sm text-gray-700 mb-4">قم بتحميل صورة لقسمك. سيقدم الذكاء الاصطناعي تقييماً للتنظيم واقتراحات لتحسين الإدماج.</p>
+                
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+                    <input type="file" id="classroom-image-input" accept="image/*" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#118AB2] text-right md:w-2/3 w-full bg-white">
+                    
+                    <button onclick="analyzeClassroomImage()" class="llm-button py-3 px-6 rounded-lg shadow-md md:w-1/3 w-full flex items-center justify-center">
+                        ✨ تحليل القسم الدامج
+                    </button>
+                </div>
+
+                <div id="image-preview-container" class="text-center">
+                    <!-- Image preview will be here -->
+                </div>
+
+                 <div id="classroom-analysis-result-container" class="mt-6 bg-white p-4 rounded-lg shadow-inner relative min-h-[50px]">
+                    <div id="classroom-analysis-loading" class="loading-overlay hidden">
+                        <div class="spinner"></div>
+                        <p class="mr-4 text-[#073B4C] font-semibold">جاري تحليل الصورة... يرجى الانتظار.</p>
+                    </div>
+                    <div id="classroom-analysis-result" class="text-right text-gray-800">
+                        <p class="text-gray-500 italic">ستظهر هنا نتائج التحليل التلقائي مع توصيات لبيئة دامجة.</p>
+                    </div>
+                </div>
+            </div>
+
+             <!-- GEMINI API FEATURE: Protection Idea Generator -->
+            <div class="bg-slate-200 p-6 rounded-lg shadow-inner mt-8 relative">
+                <h3 class="text-2xl font-bold text-[#073B4C] text-center mb-4">✨ مولّد أفكار الحماية والوقاية</h3>
+                <p class="text-center text-sm text-gray-700 mb-4">اختر نوع الإساءة لتوليد فكرة نشاط وقائي محدد ومبتكر للمربي لتطبيقه في القسم.</p>
+
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+                    <select id="abuse-type" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6B6B] text-right md:w-1/3 w-full">
+                        <option value="">اختر نوع الإساءة...</option>
+                        <option value="الإهمال أو الحرمان">الإهمال أو الحرمان (💔)</option>
+                        <option value="الإيذاء الجسدي">الإيذاء الجسدي (🤕)</option>
+                        <option value="الإيذاء العاطفي (النفسي)">الإيذاء العاطفي (النفسي) (🗣️)</option>
+                        <option value="الاستغلال أو الاعتداء الجنسي">الاستغلال أو الاعتداء الجنسي (🚫)</option>
+                    </select>
+                    
+                    <button onclick="generateProtectionIdea()" class="llm-button py-3 px-6 rounded-lg shadow-md md:w-1/3 w-full flex items-center justify-center">
+                        ✨ توليد فكرة وقائية عملية
+                    </button>
+                </div>
+
+                 <div id="protection-idea-result-container" class="mt-6 bg-white p-4 rounded-lg shadow-inner relative min-h-[50px]">
+                    <div id="protection-idea-loading" class="loading-overlay hidden">
+                        <div class="spinner"></div>
+                        <p class="mr-4 text-[#073B4C] font-semibold">جاري التوليد... يرجى الانتظار.</p>
+                    </div>
+                    <div id="protection-idea-result" class="text-right text-gray-800">
+                        <!-- Results will appear here -->
+                        <p class="text-gray-500 italic">ستظهر هنا فكرة نشاط وقائي.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GEMINI API FEATURE: Case Study Generator -->
+        <section id="case-study-generator" class="mb-12 bg-[#073B4C] p-6 rounded-lg shadow-xl relative">
+            <h2 class="text-3xl font-bold text-center text-white mb-6">✨ أداة توليد دراسات الحالة للتدريب</h2>
+            <p class="text-center text-gray-300 max-w-4xl mx-auto mb-6">
+                استخدم الذكاء الاصطناعي لتوليد سيناريو تدريبي واقعي، يتضمن توصيات فورية لتكييف القسم.
+            </p>
+
+            <div class="bg-white p-6 rounded-lg shadow-md grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" id="disability-type" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#118AB2] text-right" placeholder="نوع الإعاقة (مثال: توحد، داون، حركية)">
+                <input type="text" id="specific-challenge" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#118AB2] text-right" placeholder="التحدي المحدد (مثال: صعوبة التواصل البصري، فرط الحركة)">
+                
+                <button onclick="generateCaseStudy()" class="llm-button py-3 px-4 rounded-lg shadow-md transform hover:scale-[1.01] flex items-center justify-center">
+                    ✨ توليد دراسة حالة وتوصيات
+                </button>
+            </div>
+            
+            <div id="case-study-result-container" class="mt-6 bg-slate-100 p-6 rounded-lg relative min-h-[100px]">
+                <div id="case-study-loading" class="loading-overlay hidden">
+                    <div class="spinner"></div>
+                    <p class="mr-4 text-[#073B4C] font-semibold">جاري التوليد... يرجى الانتظار.</p>
+                </div>
+                <div id="case-study-result" class="text-right text-gray-800">
+                    <!-- Results will appear here -->
+                    <p class="text-gray-500 italic">سيتم عرض السيناريو التربوي والتوصيات هنا بعد الضغط على الزر.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- NEW GEMINI API FEATURE: Behavioral Observation Summarizer -->
+        <section id="observation-summarizer" class="mb-12 bg-[#FFD166] p-6 rounded-lg shadow-xl relative">
+            <h2 class="text-3xl font-bold text-center text-[#073B4C] mb-6">✨ مُلخِّص ملاحظات السلوك والنمو</h2>
+            <p class="text-center text-gray-800 max-w-4xl mx-auto mb-6">
+                ألصق الملاحظات اليومية غير المنظمة لطفل معين. سيقوم الذكاء الاصطناعي بتنظيمها، وتصنيفها حسب مجالات النمو (الاجتماعي، المعرفي، الحركي)، وتوفير تقرير موجز.
+            </p>
+
+            <div class="bg-white p-6 rounded-lg shadow-md grid grid-cols-1 gap-4 items-end">
+                <label for="observation-notes" class="block text-sm font-medium text-gray-700 mb-1 text-right">الملاحظات اليومية غير المنظمة للطفل (في حدود 200 كلمة)</label>
+                <textarea id="observation-notes" rows="6" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFD166] text-right w-full" placeholder="مثال: اليوم، رفض أحمد الانضمام إلى ركن البناء، وبكى عندما أطفأت الأضواء فجأة. ولكنه تمكن من تكديس 5 حلقات على العمود بمساعدة بسيطة من زميله. وعندما تحدثت إليه، كرر الكلمات التي قلتها."></textarea>
+                
+                <button onclick="summarizeObservationNotes()" class="llm-button py-3 px-4 rounded-lg shadow-md flex items-center justify-center bg-gradient-to-r from-[#073B4C] to-[#118AB2] mt-4">
+                    ✨ تحليل وتلخيص الملاحظات
+                </button>
+            </div>
+            
+            <div id="observation-result-container" class="mt-6 bg-slate-100 p-6 rounded-lg relative min-h-[100px]">
+                <div id="observation-loading" class="loading-overlay hidden">
+                    <div class="spinner"></div>
+                    <p class="mr-4 text-[#073B4C] font-semibold">جاري تحليل الملاحظات... يرجى الانتظار.</p>
+                </div>
+                <div id="observation-result" class="text-right text-gray-800 structured-output">
+                    <!-- Results will appear here -->
+                    <p class="text-gray-500 italic">سيتم عرض التقرير المنظم والملخص لملاحظاتك هنا.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-[#073B4C] text-white text-center p-4 mt-8">
+        <p>مصوغة التربية الدامجة في مرحلة التعليم الأولي</p>
+    </footer>
+
+    <script>
+        // --- Utility Functions for TTS and API Calls ---
+        const API_KEY = "AIzaSyBHACHhOdIzfKc21RiX1VCZOV99LhS353U"; // If you want to use models other than gemini-2.5-flash-preview-05-20, provide an API key here. Otherwise, leave this as-is.
+
+        /**
+         * Converts a base64 string to an ArrayBuffer.
+         * @param {string} base64 - The base64 encoded string.
+         * @returns {ArrayBuffer}
+         */
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        /**
+         * Converts PCM data (Int16Array) to a WAV Blob.
+         * @param {Int16Array} pcm16 - The signed 16-bit PCM audio data.
+         * @param {number} sampleRate - The sample rate.
+         * @returns {Blob}
+         */
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+            
+            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+            const view = new DataView(buffer);
+            
+            /* RIFF identifier */
+            view.setUint32(0, 0x52494646, false); // "RIFF"
+            /* file length */
+            view.setUint32(4, 36 + pcm16.length * 2, true);
+            /* RIFF type */
+            view.setUint32(8, 0x57415645, false); // "WAVE"
+            /* format chunk identifier */
+            view.setUint32(12, 0x666d7420, false); // "fmt "
+            /* format chunk length */
+            view.setUint32(16, 16, true);
+            /* sample format (1 for PCM) */
+            view.setUint16(20, 1, true);
+            /* number of channels */
+            view.setUint16(22, numChannels, true);
+            /* sample rate */
+            view.setUint32(24, sampleRate, true);
+            /* byte rate (sampleRate * blockAlign) */
+            view.setUint32(28, byteRate, true);
+            /* block align (numChannels * bitsPerSample/8) */
+            view.setUint16(32, blockAlign, true);
+            /* bits per sample */
+            view.setUint16(34, bitsPerSample, true);
+            /* data chunk identifier */
+            view.setUint32(36, 0x64617461, false); // "data"
+            /* data chunk length */
+            view.setUint32(40, pcm16.length * 2, true);
+
+            // Write PCM data
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+
+        /**
+         * Generic function to call Gemini API with exponential backoff.
+         * @param {string} model - The model to use.
+         * @param {object} payload - The request payload.
+         * @param {number} maxRetries - Maximum number of retries.
+         * @returns {Promise<object>} - The parsed JSON response.
+         */
+        async function callGeminiApiWithRetry(model, payload, maxRetries = 3) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        return await response.json();
+                    } else if (response.status === 429 && i < maxRetries - 1) {
+                        // Rate limit error, retry with exponential backoff
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        // Other errors or last retry failed
+                        const errorBody = await response.json();
+                        console.error('API Error:', response.status, errorBody);
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        throw error; // Throw the error after the last retry
+                    }
+                    // Continue to the next retry
+                }
+            }
+        }
+
+        // --- TTS Implementation ---
+
+        /**
+         * Reads the definition aloud using Gemini TTS API.
+         */
+        async function readDefinition() {
+            const textToRead = document.getElementById('inclusive-definition').innerText;
+            const ttsButton = document.querySelector('button[onclick="readDefinition()"]');
+            ttsButton.disabled = true;
+            ttsButton.innerHTML = 'جاري التحضير...';
+            const audio = document.getElementById('tts-audio');
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: textToRead }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            // Using a clear and firm Arabic-compatible voice (Kore often works well for formal tone)
+                            prebuiltVoiceConfig: { voiceName: "Kore" }
+                        },
+                        languageCode: "ar-EG" // Specify Arabic language
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            try {
+                const result = await callGeminiApiWithRetry("gemini-2.5-flash-preview-tts", payload);
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    // API returns signed PCM16 audio data.
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    
+                    // Cleanup previous URL
+                    if (audio.src) URL.revokeObjectURL(audio.src);
+                    
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    audio.src = audioUrl;
+                    
+                    ttsButton.innerHTML = '🔊 جاري القراءة...';
+                    
+                    audio.play().catch(e => console.error("Audio play failed:", e));
+
+                    audio.onended = () => {
+                        ttsButton.innerHTML = '🔊 اقرأ التعريف (TTS)';
+                        ttsButton.disabled = false;
+                    };
+
+                } else {
+                    console.error("Invalid TTS response format or missing data.");
+                    ttsButton.innerHTML = '❌ خطأ في الصوت';
+                }
+
+            } catch (error) {
+                console.error("TTS generation failed:", error);
+                ttsButton.innerHTML = '❌ فشل الاتصال';
+            } finally {
+                if(audio.paused || !audio.src) {
+                    // Only re-enable if not currently playing (e.g., failed to start or source is missing)
+                    ttsButton.disabled = false;
+                }
+            }
+        }
+
+        // --- Communication Draft Generator Implementation ---
+        async function generateCommunicationDraft() {
+            const observedBehavior = document.getElementById('observed-behavior').value.trim();
+            const resultDiv = document.getElementById('communication-draft-result');
+            const loadingDiv = document.getElementById('communication-draft-loading');
+            const generateButton = document.querySelector('#abuse_consequences .llm-button');
+
+            if (!observedBehavior) {
+                resultDiv.innerHTML = '<p class="text-red-600 font-bold">يرجى وصف السلوك الملاحظ أو علامة الخطر أولاً.</p>';
+                return;
+            }
+
+            loadingDiv.classList.remove('hidden');
+            generateButton.disabled = true;
+            generateButton.innerHTML = 'جاري التوليد...';
+            resultDiv.innerHTML = '';
+
+            const userQuery = `
+                أنا مربي في مرحلة التعليم الأولي وأرغب في التواصل مع ولي أمر الطفل بشأن سلوك أو علامة خطر لاحظتها.
+                السلوك الملاحظ هو: "${observedBehavior}".
+                الرجاء صياغة رسالة مهنية، حساسة، ومحايدة (لا تحتوي على اتهام مباشر) موجهة لولي الأمر.
+                يجب أن تتضمن الرسالة:
+                1. تعبيراً عن القلق والهدف من التواصل (التعاون لخير الطفل).
+                2. وصفاً دقيقاً وموضوعياً للسلوك الملاحظ.
+                3. دعوة للقاء أو اتصال لمناقشة الأمر بتفصيل.
+                يجب ألا تزيد الرسالة عن 100 كلمة، واكتبها باللغة العربية بأسلوب رسمي ومهني.
+            `;
+            
+            const systemPrompt = "أنت مستشار تربوي متخصص في التواصل مع الأسر بشأن صعوبات الأطفال. مهمتك هي إنشاء مسودة رسالة تواصل مهنية ومحترمة ومبنية على الملاحظة، لتشجيع التعاون دون إثارة رد فعل دفاعي.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await callGeminiApiWithRetry("gemini-2.5-flash-preview-05-20", payload);
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'تعذر توليد المسودة. يرجى المحاولة مرة أخرى.';
+                
+                // Simple markdown-to-HTML conversion for better rendering
+                let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+                formattedText = formattedText.replace(/(\n\n)/g, '<p class="mt-2 mb-2">'); // Double newline to paragraph
+
+                resultDiv.innerHTML = formattedText;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="text-red-600 font-bold">حدث خطأ أثناء الاتصال بخدمة الذكاء الاصطناعي: ${error.message}</p>`;
+            } finally {
+                loadingDiv.classList.add('hidden');
+                generateButton.disabled = false;
+                generateButton.innerHTML = '✨ توليد مسودة رسالة للأسر';
+            }
+        }
+
+        // --- Classroom Image Analyzer Implementation ---
+
+        // Function to convert a File object to a Base64 data URL
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]); // Only need the base64 part
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Handle file change to show a preview
+        document.getElementById('classroom-image-input').addEventListener('change', function() {
+            const file = this.files[0];
+            const previewContainer = document.getElementById('image-preview-container');
+            previewContainer.innerHTML = ''; // Clear previous preview
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview mx-auto';
+                    img.style.maxWidth = '100%';
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+
+        async function analyzeClassroomImage() {
+            const imageInput = document.getElementById('classroom-image-input');
+            const file = imageInput.files[0];
+            const resultDiv = document.getElementById('classroom-analysis-result');
+            const loadingDiv = document.getElementById('classroom-analysis-loading');
+            const analyzeButton = document.querySelector('#protection button[onclick="analyzeClassroomImage()"]');
+
+            if (!file) {
+                resultDiv.innerHTML = '<p class="text-red-600 font-bold">يرجى تحميل صورة أولاً.</p>';
+                return;
+            }
+
+            loadingDiv.classList.remove('hidden');
+            analyzeButton.disabled = true;
+            analyzeButton.innerHTML = 'جاري تحليل الصورة...';
+            resultDiv.innerHTML = '';
+
+            try {
+                const base64ImageData = await getBase64(file);
+                
+                const userQuery = `
+                    حلل الصورة التالية لصف تعليم أولي (روضة) وقدم تقييماً شاملاً لمدى دعمه للتربية الدامجة (Inclusive Education).
+                    يجب أن يتضمن التقييم جزأين رئيسيين:
+                    1. الملاحظات: اذكر 3-5 نقاط قوة ونقاط ضعف في تنظيم الصف وعرض المواد التعليمية من منظور الإدماج والأطفال ذوي الاحتياجات الخاصة (مثل التوحد، الإعاقة الحركية، صعوبات التعلم).
+                    2. التوصيات: قدم 3 توصيات عملية ومحددة لتكييف البيئة بناءً على الملاحظات لزيادة شمولية الصف.
+                    اكتب الرد باللغة العربية مع تنسيق قوي باستخدام رؤوس وأقسام.
+                `;
+                
+                const systemPrompt = "أنت خبير في تصميم الفضاءات التعليمية الدامجة لمرحلة التعليم الأولي (الروضة). مهمتك هي تحليل الصور لتقديم تقارير دقيقة ومفصلة مع توصيات لتحقيق أقصى قدر من الشمولية والأمان للأطفال ذوي الاحتياجات الخاصة.";
+
+                const payload = {
+                    contents: [
+                        { role: "user", parts: [
+                            { text: userQuery },
+                            {
+                                inlineData: {
+                                    mimeType: file.type,
+                                    data: base64ImageData
+                                }
+                            }
+                        ]}
+                    ],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                };
+
+                const result = await callGeminiApiWithRetry("gemini-2.5-flash-preview-05-20", payload);
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'تعذر توليد التحليل. يرجى المحاولة مرة أخرى بصورة أوضح.';
+                
+                // Simple markdown-to-HTML conversion for better rendering
+                let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+                formattedText = formattedText.replace(/### (.*?)(\n|$)/g, '<h4 class="text-xl font-bold text-[#073B4C] mt-4 mb-2 border-b border-[#118AB2] pb-1">$1</h4>'); // H3 to H4
+                formattedText = formattedText.replace(/## (.*?)(\n|$)/g, '<h3 class="text-2xl font-bold text-[#118AB2] mt-6 mb-3">$1</h3>'); // H2 to H3
+                formattedText = formattedText.replace(/(\* |-) (.*?)(\n|$)/g, '<li class="list-disc list-inside mr-6">$2</li>'); // Lists
+                formattedText = formattedText.replace(/(\n\n)/g, '<p class="mt-2 mb-2">'); // Double newline to paragraph
+                formattedText = formattedText.replace(/<p class="mt-2 mb-2"><li/g, '<p><li'); // Fix for list preceding paragraph
+
+                resultDiv.innerHTML = formattedText;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="text-red-600 font-bold">حدث خطأ أثناء الاتصال بخدمة الذكاء الاصطناعي: تأكد من أن الصورة واضحة وصيغتها صحيحة. (${error.message})</p>`;
+            } finally {
+                loadingDiv.classList.add('hidden');
+                analyzeButton.disabled = false;
+                analyzeButton.innerHTML = '✨ تحليل القسم الدامج';
+            }
+        }
+
+
+        // --- Case Study Generator Implementation ---
+        async function generateCaseStudy() {
+            const disabilityType = document.getElementById('disability-type').value.trim();
+            const specificChallenge = document.getElementById('specific-challenge').value.trim();
+            const resultDiv = document.getElementById('case-study-result');
+            const loadingDiv = document.getElementById('case-study-loading');
+            const generateButton = document.querySelector('#case-study-generator button.llm-button');
+
+            if (!disabilityType || !specificChallenge) {
+                resultDiv.innerHTML = '<p class="text-red-600 font-bold">يرجى إدخال نوع الإعاقة والتحدي المحدد.</p>';
+                return;
+            }
+
+            loadingDiv.classList.remove('hidden');
+            generateButton.disabled = true;
+            generateButton.innerHTML = 'جاري التوليد...';
+            resultDiv.innerHTML = '';
+
+            const userQuery = `
+                قم بتوليد دراسة حالة مفصلة وموجزة لمعلم في مرحلة التعليم الأولي (ما قبل المدرسة).
+                نوع الإعاقة: ${disabilityType}.
+                التحدي المحدد الذي يواجهه الطفل في القسم: ${specificChallenge}.
+                يجب أن يتضمن الرد جزأين:
+                1. سيناريو الطفل والوضع الحالي.
+                2. 3-5 توصيات عملية ومحددة للمعلم لتكييف البيئة والممارسات في القسم لدعم الطفل.
+                اكتب الرد باللغة العربية مع تنسيق قوي باستخدام رؤوس وأقسام.
+            `;
+            
+            const systemPrompt = "أنت خبير في التربية الدامجة وتطوير خطط الدعم الفردية (PEI) للأطفال في مرحلة التعليم الأولي. مهمتك هي إنشاء دراسات حالة واقعية وتوصيات تربوية عملية ومباشرة للمعلمين.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await callGeminiApiWithRetry("gemini-2.5-flash-preview-05-20", payload);
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'تعذر توليد دراسة الحالة. يرجى المحاولة مرة أخرى.';
+                
+                // Simple markdown-to-HTML conversion for better rendering
+                let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+                formattedText = formattedText.replace(/### (.*?)(\n|$)/g, '<h4 class="text-xl font-bold text-[#073B4C] mt-4 mb-2">$1</h4>'); // H3 to H4
+                formattedText = formattedText.replace(/## (.*?)(\n|$)/g, '<h3 class="text-2xl font-bold text-[#118AB2] mt-6 mb-3">$1</h3>'); // H2 to H3
+                formattedText = formattedText.replace(/(\* |-) (.*?)(\n|$)/g, '<li class="list-disc list-inside mr-6">$2</li>'); // Lists
+                formattedText = formattedText.replace(/(\n\n)/g, '<p class="mt-2 mb-2">'); // Double newline to paragraph
+                formattedText = formattedText.replace(/<p class="mt-2 mb-2"><li/g, '<p><li'); // Fix for list preceding paragraph
+
+                resultDiv.innerHTML = formattedText;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="text-red-600 font-bold">حدث خطأ أثناء الاتصال بخدمة الذكاء الاصطناعي: ${error.message}</p>`;
+            } finally {
+                loadingDiv.classList.add('hidden');
+                generateButton.disabled = false;
+                generateButton.innerHTML = '✨ توليد دراسة حالة وتوصيات';
+            }
+        }
+
+        // --- Protection Idea Generator Implementation ---
+        async function generateProtectionIdea() {
+            const abuseTypeSelect = document.getElementById('abuse-type');
+            const abuseType = abuseTypeSelect.value;
+            const resultDiv = document.getElementById('protection-idea-result');
+            const loadingDiv = document.getElementById('protection-idea-loading');
+            const generateButton = document.querySelector('#protection button[onclick="generateProtectionIdea()"]');
+
+
+            if (!abuseType) {
+                resultDiv.innerHTML = '<p class="text-red-600 font-bold">يرجى اختيار نوع الإساءة أولاً.</p>';
+                return;
+            }
+
+            loadingDiv.classList.remove('hidden');
+            generateButton.disabled = true;
+            generateButton.innerHTML = 'جاري التوليد...';
+            resultDiv.innerHTML = '';
+
+            const userQuery = `
+                أنا مربي في مرحلة التعليم الأولي (3-5 سنوات).
+                أحتاج إلى فكرة نشاط وقائي (في حدود 70 كلمة) يمكنني تطبيقه مباشرة في القسم لحماية الأطفال من خطر ${abuseType}.
+                يجب أن تكون الفكرة:
+                1. عملية ومناسبة لسن ما قبل المدرسة.
+                2. تركز على الوقاية النشطة وتعليم الأطفال حدود جسدهم أو حقوقهم بطريقة بسيطة.
+                ابدأ الرد بعنوان قوي ومختصر ثم الفكرة العملية. لا تستخدم علامات تنصيص.
+            `;
+            
+            const systemPrompt = "أنت خبير في حماية الطفل وتطوير أنشطة الوعي والحماية الوقائية لمرحلة التعليم الأولي. مهمتك هي تقديم فكرة نشاط واحد، عملي وسهل التطبيق.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await callGeminiApiWithRetry("gemini-2.5-flash-preview-05-20", payload);
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'تعذر توليد الفكرة. يرجى المحاولة مرة أخرى.';
+                
+                let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+                formattedText = formattedText.replace(/(\n\n)/g, '<p class="mt-2 mb-2">'); // Double newline to paragraph
+
+                resultDiv.innerHTML = formattedText;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="text-red-600 font-bold">حدث خطأ أثناء الاتصال بخدمة الذكاء الاصطناعي: ${error.message}</p>`;
+            } finally {
+                loadingDiv.classList.add('hidden');
+                generateButton.disabled = false;
+                generateButton.innerHTML = '✨ توليد فكرة وقائية عملية';
+            }
+        }
+        
+        // --- Inclusive Activity Generator Implementation ---
+        async function generateInclusiveActivity() {
+            const topic = document.getElementById('activity-topic').value.trim();
+            const duration = document.getElementById('activity-duration').value.trim();
+            const resultDiv = document.getElementById('activity-result');
+            const loadingDiv = document.getElementById('activity-loading');
+            const generateButton = document.querySelector('#activity-generator button.llm-button');
+
+            if (!topic) {
+                resultDiv.innerHTML = '<p class="text-red-600 font-bold">يرجى إدخال الموضوع أو الهدف التعليمي أولاً.</p>';
+                return;
+            }
+
+            loadingDiv.classList.remove('hidden');
+            generateButton.disabled = true;
+            generateButton.innerHTML = 'جاري التوليد...';
+            resultDiv.innerHTML = '';
+
+            const userQuery = `
+                أنا مربي في مرحلة التعليم الأولي (3-5 سنوات).
+                أريد نشاطاً تطبيقياً حول الموضوع: **${topic}**. المدة المقترحة هي **${duration} دقيقة**.
+                الرجاء توليد خطة نشاط مفصلة وموجزة باللغة العربية، تشمل:
+                1. **اسم النشاط** وهدفه التعليمي.
+                2. **خطوات التنفيذ** (3-4 خطوات رئيسية).
+                3. **توصيات الإدماج والتكييف** (3-4 نقاط) موجهة خصيصاً للأطفال ذوي الإعاقة (مثل التوحد، الإعاقة الحركية، صعوبات التعلم) لضمان مشاركتهم الفعالة.
+                استخدم تنسيق قوي (عناوين جريئة وقوائم).
+            `;
+
+            const systemPrompt = "أنت خبير في تطوير المناهج التعليمية الدامجة لمرحلة ما قبل المدرسة. مهمتك هي إنشاء خطط أنشطة إبداعية وقابلة للتنفيذ في الفصل، مع التركيز القوي على التكييفات اللازمة للإدماج.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await callGeminiApiWithRetry("gemini-2.5-flash-preview-05-20", payload);
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'تعذر توليد النشاط. يرجى المحاولة مرة أخرى.';
+                
+                // Simple markdown-to-HTML conversion for better rendering
+                let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+                formattedText = formattedText.replace(/### (.*?)(\n|$)/g, '<h4 class="text-xl font-bold text-[#073B4C] mt-4 mb-2 border-b border-[#06D6A0] pb-1">$1</h4>'); // H3 to H4
+                formattedText = formattedText.replace(/## (.*?)(\n|$)/g, '<h3 class="text-2xl font-bold text-[#118AB2] mt-6 mb-3">$1</h3>'); // H2 to H3
+                formattedText = formattedText.replace(/(\* |-) (.*?)(\n|$)/g, '<li class="list-disc list-inside mr-6">$2</li>'); // Lists
+                formattedText = formattedText.replace(/(\n\n)/g, '<p class="mt-2 mb-2">'); // Double newline to paragraph
+                formattedText = formattedText.replace(/<p class="mt-2 mb-2"><li/g, '<p><li'); // Fix for list preceding paragraph
+
+                resultDiv.innerHTML = formattedText;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="text-red-600 font-bold">حدث خطأ أثناء الاتصال بخدمة الذكاء الاصطناعي: ${error.message}</p>`;
+            } finally {
+                loadingDiv.classList.add('hidden');
+                generateButton.disabled = false;
+                generateButton.innerHTML = '✨ توليد نشاط دامج';
+            }
+        }
+
+        // --- NEW: Behavioral Observation Summarizer Implementation ---
+        async function summarizeObservationNotes() {
+            const notes = document.getElementById('observation-notes').value.trim();
+            const resultDiv = document.getElementById('observation-result');
+            const loadingDiv = document.getElementById('observation-loading');
+            const generateButton = document.querySelector('#observation-summarizer button.llm-button');
+
+            if (!notes) {
+                resultDiv.innerHTML = '<p class="text-red-600 font-bold">يرجى إدخال الملاحظات أولاً لبدء التحليل.</p>';
+                return;
+            }
+
+            loadingDiv.classList.remove('hidden');
+            generateButton.disabled = true;
+            generateButton.innerHTML = 'جاري تحليل الملاحظات...';
+            resultDiv.innerHTML = '';
+
+            const userQuery = `
+                أنا مربي في مرحلة التعليم الأولي. لدي الملاحظات اليومية غير المنظمة التالية عن طفل واحد:
+                """
+                ${notes}
+                """
+                الرجاء تحليل هذه الملاحظات وتقديم تقرير موجز ومنظم باللغة العربية. يجب أن يتضمن التقرير ما يلي:
+                1. **ملخص النتائج**: فقرة واحدة تلخص بشكل احترافي مستوى مشاركة الطفل وسلوكه العام.
+                2. **توزيع الملاحظات حسب المجال**: قائمة منظمة تصنف الملاحظات إلى مجالات (مثل: **المجال الاجتماعي/العاطفي**، **المجال المعرفي/اللغوي**، **المجال الحركي/المهارات الدقيقة**).
+                3. **توصية للإجراء التالي**: اقتراح واحد محدد ومباشر (مثال: التركيز على تمارين المهارات الدقيقة، أو التشاور مع أخصائي التوحد).
+                استخدم تنسيق Markdown قوي للعناوين والقوائم لتسهيل القراءة.
+            `;
+
+            const systemPrompt = "أنت أخصائي في علم نفس النمو والتربية الدامجة لمرحلة التعليم الأولي. مهمتك هي تحويل الملاحظات اليومية الخام إلى تقارير تنموية مهنية وموجهة نحو العمل، مناسبة لملفات الأطفال أو التواصل مع الأهل والأخصائيين.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await callGeminiApiWithRetry("gemini-2.5-flash-preview-05-20", payload);
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'تعذر توليد التقرير. يرجى التأكد من أن الملاحظات واضحة.';
+                
+                // Detailed Markdown-to-HTML conversion for specific structure
+                let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold titles
+                formattedText = formattedText.replace(/(\* |-) (.*?)(\n|$)/g, '<li>$2</li>'); // List items
+                formattedText = formattedText.replace(/<strong>(.*?)<\/strong>/g, '</strong></ul><strong>$1</strong><ul>'); // Wrap content between bold titles in <ul>
+                
+                // Add an initial <ul> before the first list and remove the starting </ul> and the closing <strong> tag if empty
+                if (formattedText.startsWith('</strong>')) {
+                    formattedText = formattedText.substring(9);
+                }
+                formattedText = formattedText.startsWith('<ul>') ? formattedText : '<ul>' + formattedText;
+                formattedText = formattedText.endsWith('<ul>') ? formattedText.substring(0, formattedText.length - 4) : formattedText + '</ul>';
+                
+                // Replace remaining newlines with paragraphs, avoiding breaking list structure
+                formattedText = formattedText.replace(/<\/ul>\s*<p class="mt-2 mb-2">/g, '<\/ul><p class="mt-2 mb-2">');
+                formattedText = formattedText.replace(/(\n\n)/g, '<p class="mt-2 mb-2">'); 
+                formattedText = formattedText.replace(/<p class="mt-2 mb-2"><strong>/g, '<strong>');
+                
+                // Final cleanup for paragraphs outside lists
+                formattedText = formattedText.replace(/(<\/ul>)(.*?)(\s*<strong>)/gs, (match, p1, p2, p3) => {
+                    const content = p2.trim().replace(/<p class="mt-2 mb-2">/g, ''); // Clean up stray paragraph tags in the middle
+                    if (content) {
+                        return `${p1}<p class="mt-2 mb-2">${content}</p>${p3}`;
+                    }
+                    return `${p1}${p3}`;
+                });
+
+
+                resultDiv.innerHTML = formattedText;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="text-red-600 font-bold">حدث خطأ أثناء الاتصال بخدمة الذكاء الاصطناعي: ${error.message}</p>`;
+            } finally {
+                loadingDiv.classList.add('hidden');
+                generateButton.disabled = false;
+                generateButton.innerHTML = '✨ تحليل وتلخيص الملاحظات';
+            }
+        }
+
+
+        // --- Chart.js Initialization ---
+        function wrapLabel(label) {
+            const maxLength = 16;
+            if (label.length <= maxLength) {
+                return label;
+            }
+            const words = label.split(' ');
+            let lines = [];
+            let currentLine = '';
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).trim().length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = (currentLine + ' ' + word).trim();
+                }
+            });
+            if (currentLine) {
+                lines.push(currentLine.trim());
+            }
+            return lines;
+        }
+
+        const tooltipTitleCallback = (tooltipItems) => {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+                return label.join(' ');
+            } else {
+                return label;
+            }
+        };
+
+        window.onload = function() {
+            const disabilitiesCtx = document.getElementById('disabilitiesChart').getContext('2d');
+            const disabilitiesChart = new Chart(disabilitiesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'اضطرابات التعلم المحددة', 
+                        'طيف التوحد', 
+                        'الإعاقات الحسية والحركية', 
+                        'متلازمة داون / إعاقة ذهنية'
+                    ].map(wrapLabel),
+                    datasets: [{
+                        label: 'نسبة التحديات (توضيحي)',
+                        data: [45, 25, 15, 15],
+                        backgroundColor: [
+                            '#FF6B6B',
+                            '#FFD166',
+                            '#06D6A0',
+                            '#118AB2',
+                        ],
+                        hoverOffset: 15,
+                        borderWidth: 5,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                 font: {
+                                    family: "'Tajawal', sans-serif"
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'التوزيع التقديري للإعاقات في القسم المدمج',
+                            font: {
+                                family: "'Tajawal', sans-serif",
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            rtl: true,
+                            bodyFont: {
+                                 family: "'Tajawal', sans-serif"
+                            },
+                            titleFont: {
+                                family: "'Tajawal', sans-serif"
+                            },
+                            callbacks: {
+                               title: tooltipTitleCallback,
+                               label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        if (Array.isArray(label)) {
+                                             label = label.join(' ');
+                                        }
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '%';
+                                    }
+                                    return label;
+                               }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
